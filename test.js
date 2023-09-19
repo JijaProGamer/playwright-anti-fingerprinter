@@ -1,69 +1,44 @@
-import { createFingerprinterInterface, generateFingerprint } from "./index.js";
-import puppeteer from "puppeteer-extra"
+import { firefox } from "playwright"
+import { GetCommonFingerprint, GenerateFingerprint/*, ConnectBrowserFingerprinter*/, ConnectFingerprinter } from "./index.js";
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+function requestInterceptor(page, requestData, route) {
+    let request = route.request()
 
-let staticFingerprint = generateFingerprint({
-    webgl_vendor: "NVIDIA Corporation",
-    webgl_renderer: () => true,
-    userAgent: (e) => {return e.includes("Windows NT 10.0")},
-    language: (e) => {return e.includes("en")},
-    viewport: (e) => {return e.width > 1000 && e.height > 800},
-    cpus: (e) => {return e <= 32 && e >= 4},
-    memory: (e) => {return e <= 8},
-    compatibleMediaMimes: (e) => {return e.audio.includes("aac"), e.video["mp4"] && e.video.mp4.length > 0},
-    canvas: {chance: 95, shift: 4}, 
-    //proxy: () => "test" // Test is not a valid proxy so it should error
-})
-
-let fingerprintInterface = createFingerprinterInterface({
-    generator_style: "per_page",
-    //staticFingerprint: staticFingerprint,
-    requestInterceptor: (page, request) => {
-        /*abort()
-        useProxy()*/
-
-        return "direct"
+    if(request.resourceType() == "image"){
+        return "continue"
     }
-})
 
-puppeteer.use(fingerprintInterface)
+    return "proxy"
+};
 
-/*puppeteer.launch({
-    headless: false,
-    executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-}).then(async (browser) => {
-    let page = await browser.newPage()
-    //await page.goto("https://amiunique.org/fp")
-    await page.goto("https://fingerprint.com/products/bot-detection", {waitUntil: "networkidle0"})
-    //await page.goto("https://abrahamjuliot.github.io/creepjs/", {waitUntil: "networkidle2"})
-    await sleep(3000)
+(async () => {
+    const browser = await firefox.launch({
+        headless: false,
+    });
 
-    //await page.screenshot({path: "image.png", fullPage: true})
+    const context = await browser.newContext({
+        resources: 'low',
+        serviceWorkers: "block"
+    });
 
-    console.log("Done")
-})*/
+    await context.setDefaultNavigationTimeout(0)
 
-puppeteer.launch({
-    headless: false,
-    executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-}).then(async (browser) => {
-    let page = await browser.newPage()
-    await page.goto("https://www.youtube.com/watch?v=EMLwtpuccLM")
-})
+    //await ConnectBrowserFingerprinter(browser.browserType(), context)
 
-puppeteer.launch({
-    headless: false,
-    executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-}).then(async (browser) => {
-    let page = await browser.newPage()
-    await page.goto("https://www.youtube.com/watch?v=EMLwtpuccLM")
-})
+    const page = await context.newPage();
+    await page.bringToFront();
 
-puppeteer.launch({
-    headless: false,
-    executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-}).then(async (browser) => {
-    let page = await browser.newPage()
-    await page.goto("https://www.youtube.com/watch?v=EMLwtpuccLM")
-})
+    await ConnectFingerprinter("firefox", page, {
+        fingerprint: {
+            ...GenerateFingerprint("firefox"),
+            proxy: "direct"
+            //proxy: "socks5://Bloxxy213:VictorESmeker_streaming-1@geo.iproyal.com:32325"
+        },
+        requestInterceptor
+    })
+
+    await page.goto("https://amiunique.org/fingerprint")
+
+    //await page.goto('https://fingerprint.com/products/bot-detection/');
+    //await page.goto("https://www.whatismybrowser.com/detect/what-is-my-user-agent/")
+})();

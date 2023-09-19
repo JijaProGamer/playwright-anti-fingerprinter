@@ -1,54 +1,58 @@
-//import axios from 'axios';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { PuppeteerExtraPlugin } from 'puppeteer-extra-plugin';
-import useProxy from 'puppeteer-page-proxy'
 
 import { dirname } from 'path'
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url'
 
-global.require = createRequire(fileURLToPath(import.meta.url)); 
+import useProxy from './proxy/proxy.js';
+
+global.require = createRequire(fileURLToPath(import.meta.url));
 global.__dirname = dirname(fileURLToPath(import.meta.url))
 
-let commonFingerprint = {
-    webgl_vendor: "NVIDIA Corporation",
-    webgl_renderer: "NVIDIA GeForce GTX 1650/PCIe/SSE2",
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+let commonFingerprints = {}
+let evasionPlugins = {}
+let networkEvasionPlugins = {}
+let databases = {}
 
-    language: "en-US,en",
-    viewport: {
-        width: 1920,
-        height: 1080,
-    },
-    canvas: {
-        shift: 1,
-        chance: 50,
-    },
+let databaseTypes = [
+    "webgl_renderers",
+    "compatibleMediaMimes",
+    "languages",
+    "userAgents",
+    "canvass",
+    "viewports"
+]
 
-    cpus: 4,
-    memory: 8,
+let supportedDrivers = [
+    "firefox",
+    "chromium"
+]
 
-    compatibleMediaMimes: {
-        audio: [`flac`, `vorbis`, `opus`, 'aac'],
-        video: {
-            mp4: [`avc1.42E01E`, `H264`, `flac`],
-            mpeg: [],
-            ogg: ["opus", "theora"],
-            webm: ["vp9", "vp8"]
+for (let driver of supportedDrivers) {
+    let evasionsPosible = JSON.parse(readFileSync(path.join(__dirname, "evasions", driver, "evasions.json")))
+    evasionPlugins[driver] = {}
+    networkEvasionPlugins[driver] = {}
+    databases[driver] = {
+        cpus: [4, 8, 12, 16, 24, 32, 64, 96],
+        memorys: [0.25, 0.5, 1, 2, 4, 8],
+        webgl_vendors: ["Google Inc.", "NVIDIA Corporation"]
+    }
+
+    for (let evasion of evasionsPosible) {
+        if(evasion.startsWith("network-")){
+            networkEvasionPlugins[driver][evasion] = require(path.join(__dirname, "evasions", driver, "evasions", `${evasion}.cjs`))
+        } else {
+            evasionPlugins[driver][evasion] = require(path.join(__dirname, "evasions", driver, "evasions", `${evasion}.cjs`))
         }
     }
-}
 
-let cpus = [4, 8, 12, 16, 24, 32, 64, 96]
-let memories = [0.25, 0.5, 1, 2, 4, 8]
-let webgl_vendors = ["Google Inc.", "NVIDIA Corporation"]
-let webgl_renderers = JSON.parse(readFileSync(path.join(__dirname, "/databases/webgl_renderers.json")))
-let mediaTypes = JSON.parse(readFileSync(path.join(__dirname, "/databases/media_types.json")))
-let languages = JSON.parse(readFileSync(path.join(__dirname, "/databases/languages.json")))
-let canvases = JSON.parse(readFileSync(path.join(__dirname, "/databases/canvases.json")))
-let userAgents = JSON.parse(readFileSync(path.join(__dirname, "/databases/userAgents.json")))
-let viewports = JSON.parse(readFileSync(path.join(__dirname, "/databases/viewports.json")))
+    for (let databaseType of databaseTypes) {
+        databases[driver][databaseType] = JSON.parse(readFileSync(path.join(__dirname, "databases", driver, `${databaseType}.json`)))
+    }
+
+    commonFingerprints[driver] = JSON.parse(readFileSync(path.join(__dirname, "databases", "common", `${driver}.json`)))
+}
 
 function shuffle(arr) {
     return [...arr]
@@ -57,278 +61,115 @@ function shuffle(arr) {
         .map(({ value }) => value)
 }
 
-function generateFingerprint(generator_options = {}) {
+function GetCommonFingerprint(browserType) {
+    if (!commonFingerprints[browserType]) {
+        throw new Error(`browser type "${browserType}" is not supported. Please use ${supportedDrivers.join(" or ")}.`)
+    }
+
+    return commonFingerprints[browserType]
+}
+
+function GenerateFingerprint(browserType, generator_options = {}) {
+    if (!databases[browserType]) {
+        throw new Error(`browser type "${browserType}" is not supported. Please use ${supportedDrivers.join(" or ")}.`)
+    }
+
+    let database = databases[browserType]
     generator_options = {
         webgl_vendor: (e) => true,
         webgl_renderer: (e) => true,
         language: (e) => e.includes("en"),
         userAgent: (e) => e.includes("Windows"),
         viewport: (e) => e.width > 1000 && e.height > 800 && e.width < 2000 && e.height < 2000,
-        cpus: (e) => e <= 24 && e >= 4,
+        cpu: (e) => e <= 24 && e >= 4,
         memory: (e) => true,
-        compatibleMediaMimes: (e) => e.audio.includes("aac") && e.video["mp4"] && e.video.mp4.length > 0,
+        compatibleMediaMime: (e) => e.audio.includes("aac") && e.video["mp4"] && e.video.mp4.length > 0,
         canvas: (e) => true,
-        proxy: (e) => ["direct://"],
+        proxy: (e) => "direct://",
         ...generator_options,
     }
 
-    let webgl_vendor = generator_options.webgl_vendor
-    let webgl_renderer = generator_options.webgl_renderer
-    let viewport = generator_options.viewport
-    let cpu = generator_options.cpus
-    let memory = generator_options.memory
-    let compatibleMediaMimes = generator_options.compatibleMediaMimes
-    let canvas = generator_options.canvas
-    let language = generator_options.language
-    let userAgent = generator_options.userAgent
-    let proxy = generator_options.proxy
+    let fingerprint = {}
 
-    let shuffled_webgl_vendors = shuffle(webgl_vendors)
-    let shuffled_viewports = shuffle(viewports)
-    let shuffled_cpus = shuffle(cpus)
-    let shuffled_memories = shuffle(memories)
-    let shuffled_mediaTypes = shuffle(mediaTypes)
-    let shuffled_canvases = shuffle(canvases)
-    let shuffled_userAgents = shuffle(userAgents)
-    let shuffled_languages = shuffle(languages)
+    for (let prop in generator_options) {
+        if (generator_options.hasOwnProperty(prop)) {
+            if (prop == "webgl_renderer") {
+                fingerprint["webgl_renderer"] = typeof (generator_options["webgl_renderer"]) == "function" ? shuffle(database["webgl_renderers"][fingerprint.webgl_vendor]).find(generator_options["webgl_renderer"]) : generator_options["webgl_renderer"]
 
-    if (typeof generator_options.webgl_vendor == "function")
-        webgl_vendor = shuffled_webgl_vendors.find(generator_options.webgl_vendor) || commonFingerprint.webgl_vendor
+                continue;
+            }
 
-    if (typeof generator_options.webgl_renderer == "function")
-        webgl_renderer = shuffle(webgl_renderers[webgl_vendor] || []).find(generator_options.webgl_renderer) || commonFingerprint.webgl_renderer
+            let data = database[prop + "s"]
 
-    if (typeof generator_options.viewport == "function")
-        viewport = shuffled_viewports.find(generator_options.viewport) || commonFingerprint.viewport
+            fingerprint[prop] = typeof (generator_options[prop]) == "function" ? (
+                data ? shuffle(data).find(generator_options[prop]) : generator_options[prop]()
+            ) : generator_options[prop]
+        }
+    }
 
-    if (typeof generator_options.cpus == "function")
-        cpu = shuffled_cpus.find(generator_options.cpus) || commonFingerprint.cpus
+    return fingerprint
+}
 
-    if (typeof generator_options.memory == "function")
-        memory = shuffled_memories.find(generator_options.memory) || commonFingerprint.memory
+/*async function ConnectBrowserFingerprinter(browserType, context, options) {
 
-    if (typeof generator_options.compatibleMediaMimes == "function")
-        compatibleMediaMimes = shuffled_mediaTypes.find(generator_options.compatibleMediaMimes) || commonFingerprint.compatibleMediaMimes
+}*/
 
-    if (typeof generator_options.canvas == "function")
-        canvas = shuffled_canvases.find(generator_options.canvas) || commonFingerprint.canvas
+async function ConnectFingerprinter(browserType, page, options) {
+    let fingerprint = options.fingerprint
+    if (!fingerprint) fingerprint = GenerateFingerprint(browserType);
 
-    if (typeof generator_options.userAgent == "function")
-        userAgent = shuffled_userAgents.find(generator_options.userAgent) || commonFingerprint.userAgent
+    await page.route('**/*', async (route) => {
+        let request = route.request()
+        
+        let requestData = {
+            method: request.method(),
+            postData: request.postData(),
+            headers: request.headers(),
+            url: request.url()
+        }
 
-    if (typeof generator_options.language == "function")
-        language = shuffled_languages.find(generator_options.language) || commonFingerprint.language
+        for (let plugin in networkEvasionPlugins[browserType]) {
+            if (networkEvasionPlugins[browserType].hasOwnProperty(plugin)) {
+                requestData = await networkEvasionPlugins[browserType][plugin](route, requestData, fingerprint)
+            }
+        }
 
-    if (typeof generator_options.proxy == "function"){
-        let proxies = generator_options.proxy()
+        if (typeof options.requestInterceptor == "function") {
+            try {
+                let mode = await options.requestInterceptor(page, requestData, route)
 
-        if(typeof proxies == "string") {
-            proxy = proxies
+                if (mode == "proxy" && !options.proxy)
+                    mode = "direct"
+
+                switch (mode) {
+                    case "direct":
+                        route.continue(requestData)
+                        break
+                    case "proxy":
+                        useProxy(page.context(), route, { proxy: options.proxy, ...requestData })
+                        break
+                    case "abort":
+                        route.abort()
+                        break
+                }
+            } catch (err) {
+                console.error(err)
+            }
         } else {
-            proxy = shuffle(proxies)[Math.floor(Math.random() * proxies.length)]
-        }
-    }
-
-    return {
-        compatibleMediaMimes,
-        language,
-        webgl_vendor,
-        webgl_renderer,
-        viewport,
-        userAgent,
-        memory,
-        canvas,
-        cpus: cpu,
-        proxy,
-    }
-}
-
-let globalFingerprint
-
-let evasions = [
-    "useragent",
-    "webdriver",
-    "chrome.runtime",
-    "document.focus",
-    "media.codecs",
-    "navigator.hardware",
-    "navigator.language",
-    "navigator.permissions",
-    "webgl", // Add pixel switching after fixing canvas
-    "canvas", // Fix canvas -___- I have canvas
-    "window.dimensions"
-]
-
-// To see later:
-// Date.toString() on normal chrome: 'function Date() { [native code] }'
-// Date.toString on normal chrome: ƒ toString() { [native code] }
-// Date.toString() on puppeteer: 'function Date() { [native code] }'
-// Date.toString on puppeteer: Proxy(Function) {length: 0, name: 'toString'}
-
-let evasionPlugins = {}
-let badDefaultArgs = [
-    '--disable-extensions',
-    '--disable-default-apps',
-    '--enable-automation',
-    '--disable-component-extensions-with-background-pages'
-]
-
-for(let evasion of evasions){
-    evasionPlugins[evasion] = require(path.join(__dirname, "evasions", `${evasion}.cjs`))
-}
-
-class FingerprinterPlugin extends PuppeteerExtraPlugin {
-    constructor(opts = {}) {
-        super(opts)
-    }
-
-    get name() {
-        return 'fingerprinter'
-    }
-
-    get defaults() {
-        return {
-            availableEvasions: new Set(evasions),
-            enabledEvasions: new Set([...evasions])
-        }
-    }
-
-    get dependencies() {return []}
-
-    get availableEvasions() {
-        return this.defaults.availableEvasions
-    }
-
-    get enabledEvasions() {
-        return this.opts.enabledEvasions
-    }
-
-    set enabledEvasions(evasions) {
-        this.opts.enabledEvasions = evasions
-    }
-
-    async onPageCreated(page) {
-        let options = page.browser().__fingerprinter_options
-        if(!options) options = generateFingerprint(this.opts.fingerprint_generator)
-        page.options = options
-
-        await page.setRequestInterception(true);
-
-        for(let evasion of this.availableEvasions){
-            evasionPlugins[evasion](page, page.options)
-        }
-
-        page.on('request', async (request) => {
-            if (request.isInterceptResolutionHandled()) return;
-
-            let headers = {...{
-                //"accept": 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'en-US,en;q=0.5',
-                //'upgrade-insecure-requests': '1',
-            },...request.headers()}
-
-            if (request.isNavigationRequest()) {
-                headers["sec-fetch-mode"] = "navigate";
-                headers["sec-fetch-site"] = "none";
-                headers["sec-fetch-user"] = "?1";
+            if (!options.proxy) {
+                route.continue(requestData)
             } else {
-                headers["sec-fetch-mode"] = "no-cors";
-                headers["sec-fetch-site"] = "same-origin";
-            }
-
-            let resourceType = request.resourceType()
-
-            if(!resourceType == "ping"){
-                if(resourceType == "fetch"){
-                    headers["sec-fetch-dest"] = "empty"
-                } else {
-                    headers["sec-fetch-dest"] = resourceType
-                }
-            }
-
-            // Wait for other request handlers to do their jobs, usefull for not wasting bandwidth on rejections and such
-            
-            if(typeof this.opts.requestInterceptor == "function"){
-                try {
-                    let mode = await this.opts.requestInterceptor(page, request)
-                    if(request.isInterceptResolutionHandled()) throw new Error("Request is already handled!")
-    
-                    if(mode == "proxy" && (page.options.proxy == "direct" || page.options.proxy == "direct://"))
-                            mode = "direct"
-    
-                    switch(mode){
-                        case "direct":
-                            request.continue({headers})
-                            break
-                        case "proxy":
-                            useProxy(request, {proxy: page.options.proxy, headers})
-                            break
-                        case "abort":
-                            request.abort()
-                            break
-                    }
-                } catch(err) {
-                    console.error(err)
-                }
-            } else {
-                if (request.isInterceptResolutionHandled()) return;
-                let proxy = (page.options.proxy || "").trim()
-
-                if(!proxy || proxy == "direct" || proxy == "direct://"){
-                    request.continue({headers})
-                } else {
-                    useProxy(request, {proxy, headers})
-                }
-            }
-        });
-      }
-
-    async onBrowser(browser, opts){
-        browser.__fingerprinter_options = (opts.fingerprint_opts || opts.options.fingerprint_opts);
-    }
-
-    async beforeLaunch(options) {            
-        options.ignoreDefaultArgs = options.ignoreDefaultArgs || []
-        if (options.ignoreDefaultArgs !== true) {
-            for(let arg of badDefaultArgs){
-                if(!options.ignoreDefaultArgs.includes(arg)){
-                    options.ignoreDefaultArgs.push(arg)
-                }
+                useProxy(page.context(), route, { proxy, ...requestData })
             }
         }
+    })
 
-        if (this.opts.staticFingerprint) {
-            options.fingerprint_opts = this.opts.staticFingerprint
-            return
-        } else {
-            if(!this.opts.generator_style){
-                options.fingerprint_opts = generateFingerprint(this.opts.fingerprint_generator)
-                return
-            }
-
-            switch (this.opts.generator_style) {
-                case "global":
-                    if (!globalFingerprint) {
-                        globalFingerprint = generateFingerprint(this.opts.fingerprint_generator)
-                    }
-
-                    options.fingerprint_opts = globalFingerprint
-                    break;
-                case "per_browser":
-                    options.fingerprint_opts = generateFingerprint(this.opts.fingerprint_generator)
-                    break;
-            }
+    for (let plugin in evasionPlugins[browserType]) {
+        if (evasionPlugins[browserType].hasOwnProperty(plugin)) {
+            await evasionPlugins[browserType][plugin](page, fingerprint)
         }
     }
 }
 
-function createFingerprinterInterface(options) {
-    return new FingerprinterPlugin(options)
-}
-
-createFingerprinterInterface.FingerprinterPlugin = FingerprinterPlugin;
-createFingerprinterInterface.default = createFingerprinterInterface;
-
-export { createFingerprinterInterface, commonFingerprint, generateFingerprint }
-export default createFingerprinterInterface
+export { ConnectFingerprinter/*, ConnectBrowserFingerprinter*/, GetCommonFingerprint, GenerateFingerprint }
+export default ConnectFingerprinter
