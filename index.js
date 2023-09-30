@@ -76,7 +76,7 @@ function GenerateFingerprint(browserType, generator_options = {}) {
 
     let database = databases[browserType]
     generator_options = {
-        webgl_vendor: (e) => true,
+        webgl_vendor: (e) => e.includes("Intel") || e.includes("AMD") || e.includes("NVIDIA"),
         webgl_renderer: (e) => true,
         language: (e) => e.includes("en"),
         userAgent: (e) => e.includes("Windows"),

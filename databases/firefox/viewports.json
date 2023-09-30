@@ -1,10 +1,134 @@
 [
-    { "width": 1920, "height": 1080 },
-    { "width": 1366, "height": 768 },
-    { "width": 1536, "height": 864 },
-    { "width": 2160, "height": 1440 },
-    { "width": 4096, "height": 2160 },
-    { "width": 2560, "height": 1080 },
-    { "width": 5120, "height": 2160 },
-    { "width": 800, "height": 600 }
+    {
+        "width": 1280,
+        "height": 720,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1280,
+        "height": 720,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 2560,
+        "height": 1440,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 396,
+        "height": 880,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1920,
+        "height": 1080,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1536,
+        "height": 864,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1280,
+        "height": 720,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1920,
+        "height": 1080,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1280,
+        "height": 720,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1920,
+        "height": 1080,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1920,
+        "height": 1080,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1280,
+        "height": 720,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 3840,
+        "height": 1080,
+        "colorDepth": 30,
+        "pixelDepth": 30
+    },
+    {
+        "width": 3840,
+        "height": 1080,
+        "colorDepth": 30,
+        "pixelDepth": 30
+    },
+    {
+        "width": 1920,
+        "height": 1080,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1600,
+        "height": 900,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 3840,
+        "height": 1080,
+        "colorDepth": 30,
+        "pixelDepth": 30
+    },
+    {
+        "width": 3840,
+        "height": 1080,
+        "colorDepth": 30,
+        "pixelDepth": 30
+    },
+    {
+        "width": 1600,
+        "height": 900,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1600,
+        "height": 900,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1600,
+        "height": 900,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    },
+    {
+        "width": 1536,
+        "height": 864,
+        "colorDepth": 24,
+        "pixelDepth": 24
+    }
 ]

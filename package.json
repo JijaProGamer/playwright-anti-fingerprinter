@@ -1,6 +1,6 @@
 {
-  "name": "puppeteer-extra-plugin-fingerprinter",
-  "version": "1.1.7",
+  "name": "playwright-anti-fingerprinter",
+  "version": "1.0.0",
   "type": "module",
   "description": "puppeteer extra plugin to randomise your browser fingerprint",
   "main": "index.js",
@@ -9,19 +9,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JijaProGamer/puppeteer-extra-plugin-fingerprinter.git"
+    "url": "git+https://github.com/JijaProGamer/playwright-anti-fingerprinter.git"
   },
   "keywords": [
     "anti-fingerprinting",
-    "puppeteer"
+    "playwright"
   ],
   "author": "JijaProGamer",
   "license": "MIT",
   "types": "./index.d.ts",
   "bugs": {
-    "url": "https://github.com/JijaProGamer/puppeteer-extra-plugin-fingerprinter/issues"
+    "url": "https://github.com/JijaProGamer/playwright-anti-fingerprinter/issues"
   },
-  "homepage": "https://github.com/JijaProGamer/puppeteer-extra-plugin-fingerprinter#readme",
+  "homepage": "https://github.com/JijaProGamer/playwright-anti-fingerprinter#readme",
   "devDependencies": {
     "@types/node": "^18.14.0"
   },
