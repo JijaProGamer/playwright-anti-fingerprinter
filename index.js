@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { dirname } from 'path'
@@ -6,9 +6,10 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url'
 
 import useProxy from './proxy/proxy.js';
+import { CacheResponse, SearchCache } from 'playwright-cache';
 
-global.require = createRequire(fileURLToPath(import.meta.url));
-global.__dirname = dirname(fileURLToPath(import.meta.url))
+let require = createRequire(fileURLToPath(import.meta.url));
+let __dirname = dirname(fileURLToPath(import.meta.url))
 
 let commonFingerprints = {}
 let evasionPlugins = {}
@@ -36,11 +37,11 @@ for (let driver of supportedDrivers) {
     databases[driver] = {
         cpus: [4, 8, 12, 16, 24, 32, 64, 96],
         memorys: [0.25, 0.5, 1, 2, 4, 8],
-        webgl_vendors: ["Google Inc.", "NVIDIA Corporation"]
+        webgl_vendors: Object.keys(JSON.parse(readFileSync(path.join(__dirname, "databases", driver, `webgl_renderers.json`))))
     }
 
     for (let evasion of evasionsPosible) {
-        if(evasion.startsWith("network-")){
+        if (evasion.startsWith("network-")) {
             networkEvasionPlugins[driver][evasion] = require(path.join(__dirname, "evasions", driver, "evasions", `${evasion}.cjs`))
         } else {
             evasionPlugins[driver][evasion] = require(path.join(__dirname, "evasions", driver, "evasions", `${evasion}.cjs`))
@@ -94,7 +95,10 @@ function GenerateFingerprint(browserType, generator_options = {}) {
     for (let prop in generator_options) {
         if (generator_options.hasOwnProperty(prop)) {
             if (prop == "webgl_renderer") {
-                fingerprint["webgl_renderer"] = typeof (generator_options["webgl_renderer"]) == "function" ? shuffle(database["webgl_renderers"][fingerprint.webgl_vendor]).find(generator_options["webgl_renderer"]) : generator_options["webgl_renderer"]
+                fingerprint["webgl_renderer"] =
+                    typeof (generator_options["webgl_renderer"]) == "function" ?
+                        shuffle(database["webgl_renderers"][fingerprint.webgl_vendor]).find(generator_options["webgl_renderer"]) :
+                        generator_options["webgl_renderer"]
 
                 continue;
             }
@@ -113,14 +117,45 @@ function GenerateFingerprint(browserType, generator_options = {}) {
 /*async function ConnectBrowserFingerprinter(browserType, context, options) {
 
 }*/
-
 async function ConnectFingerprinter(browserType, page, options) {
     let fingerprint = options.fingerprint
     if (!fingerprint) fingerprint = GenerateFingerprint(browserType);
 
+    if (!options.cache) {
+        let memoryCache = {};
+
+        options.cache = {
+            save: (URL, type, expires, Data) => {
+                return new Promise((resolve, reject) => {
+                    memoryCache[URL] = { expires, Data }
+                    resolve()
+                })
+            },
+            read: (URL) => {
+                return new Promise((resolve, reject) => {
+                    let CachedResponse = memoryCache[URL]
+                    
+                    if (!CachedResponse) {
+                        return resolve(false)
+                    }
+
+                    if (Date.now() >= CachedResponse.expires) {
+                        delete memoryCache[URL]
+                        return resolve(false)
+                    }
+
+                    resolve(CachedResponse.Data)
+                })
+            }
+        }
+    }
+
     await page.route('**/*', async (route) => {
+        if (await SearchCache(route, options.cache.read))
+            return
+
         let request = route.request()
-        
+
         let requestData = {
             method: request.method(),
             postData: request.postData(),
@@ -163,6 +198,10 @@ async function ConnectFingerprinter(browserType, page, options) {
             }
         }
     })
+
+    page.on('response', (response) => {
+        CacheResponse(response, options.cache.save);
+    });
 
     for (let plugin in evasionPlugins[browserType]) {
         if (evasionPlugins[browserType].hasOwnProperty(plugin)) {

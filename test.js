@@ -32,12 +32,12 @@ function requestInterceptor(page, requestData, route) {
         fingerprint: {
             ...GenerateFingerprint("firefox"),
             proxy: "direct"
-            //proxy: "socks5://Bloxxy213:VictorESmeker_streaming-1@geo.iproyal.com:32325"
         },
         requestInterceptor
     })
 
-    await page.goto("https://amiunique.org/fingerprint")
+    await page.goto("https://youtube.com")
+    //await page.goto("https://amiunique.org/fingerprint")
 
     //await page.goto('https://fingerprint.com/products/bot-detection/');
     //await page.goto("https://www.whatismybrowser.com/detect/what-is-my-user-agent/")

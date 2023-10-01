@@ -3,12 +3,28 @@ NOTE: This does not fix the issues with headless: true!!! If you want to use a h
 # Constructor
 
 ```js
-import { createFingerprinterInterface, commonFingerprint, generateFingerprint } from "./index.js"
-import { default as puppeteer } from "puppeteer-extra"
+import { GetCommonFingerprint, GenerateFingerprint, ConnectFingerprinter } from "playwright-anti-fingerprinter"
+import { firefox } from "playwright" // chromium and webkit supported too
 
-let staticFingerprint = generateFingerprint({
-    webgl_vendor: "NVIDIA Corporation", // You can use values instead of functions too
-    webgl_renderer: "NVIDIA GeForce GTX 1650/PCIe/SSE2",
+let commonFingerprint = GetCommonFingerprint("firefox")
+
+function requestInterceptor(page, requestData, route) {
+    let request = route.request()
+
+    if(request.resourceType() == "image"){
+        return "abort"
+    }
+
+    if(requestData.url.includes("banana")){
+        return "continue"
+    }
+
+    return "proxy"
+};
+
+let staticFingerprint = GenerateFingerprint({
+    webgl_vendor: (e) => e.includes("Intel") || e.includes("AMD") || e.includes("NVIDIA"), 
+    webgl_renderer: (e) => true,
     userAgent: (e) => {return e.includes("Windows NT 10.0")},
     language: (e) => {return e.includes("en")},
     viewport: (e) => {return e.width > 1000 && e.height > 800},
@@ -16,46 +32,49 @@ let staticFingerprint = generateFingerprint({
     cpus: (e) => {return e <= 32 && e >= 4},
     memory: (e) => {return e <= 8},
     compatibleMediaMimes: (e) => {return e.audio.includes("aac"), e.video["mp4"] && e.video.mp4.length > 0},
-    canvas: {chance: 95, shift: 4}, // set shift to 0 to cancel canvas spoofing
     proxy: "direct", // Support for string only
     proxy: () => "direct", // Defaults to this, meaning no proxy
-    proxy: () =>  ["direct", "socks5://127.0.0.1"] // Support for array and get a random object
 })
 
-// You can save staticFingerprint for later use if you want
+// For custom caches please read https://github.com/JijaProGamer/Playwright-cache
 
-let fingerprinter = createFingerprinterInterface({
-    generator_style: "per_browser" || "global" || "per_page", // Optional if staticFingerprint is provided
-    requestInterceptor: async (page, request) => { // Ability to intercept requests, fixes puppeteer request interception bugs
-        if(await request.url() == "www.example.com/page4" && await page.url() == "www.example.com") 
-            return "direct"
+let memoryCache = {};
+// Please don't use this cache implementation if launching multiple browsers using this cache
 
-        if(await request.url() == "www.example.com/big_image")
-            return "abort"
-
-        return "proxy"
+let cache = {
+    save: (URL, type, expires, Data) => {
+        return new Promise((resolve, reject) => {
+            memoryCache[URL] = { expires, Data }
+            resolve()
+        })
     },
+    read: (URL) => {
+        return new Promise((resolve, reject) => {
+            let CachedResponse = memoryCache[URL]
+            
+            if (!CachedResponse) {
+                return resolve(false)
+            }
 
-    fingerprint_generator: {
-        webgl_vendor: "NVIDIA Corporation", // You can use values instead of functions too
-        webgl_renderer: "NVIDIA GeForce GTX 1650/PCIe/SSE2",
-        userAgent: (e) => {return e.includes("Windows NT 10.0")},
-        language: (e) => {return e.includes("en")},
-        viewport: (e) => {return e.width > 1000 && e.height > 800},
-        language: (e) => true,
-        cpus: (e) => {return e <= 32 && e >= 4},
-        memory: (e) => {return e <= 8},
-        compatibleMediaMimes: (e) => {return e.audio.includes("aac"), e.video["mp4"] && e.video.mp4.length > 0},
-        canvas: {chance: 95, shift: 4}, // set shift to 0 to cancel canvas spoofing
-        proxy: "direct", // Support for string only
-        proxy: () => "direct", // Defaults to this, meaning no proxy
-        proxy: () =>  ["direct", "socks5://127.0.0.1"] // Support for array and get a random object
-    },
+            if (Date.now() >= CachedResponse.expires) {
+                delete memoryCache[URL]
+                return resolve(false)
+            }
 
-    staticFingerprint: staticFingerprint// Will only use this fingerprint for all pages and browsers if provided,
+            resolve(CachedResponse.Data)
+        })
+    }
+}
+
+// You can save fingerprint for later use if you want
+
+// Create browser, etc
+
+await ConnectFingerprinter("firefox", page, {
+    fingerprint: staticFingerprint, // if not provided, makes a new one
+    requestInterceptor, // if no provided, will proxy everything
+    cache // If not provided will use a default cache
 })
-
-puppeteer.use(fingerprinter)
 ```
 
 commonFingerprint is the most common fingerprint.
