@@ -150,7 +150,7 @@ async function ConnectFingerprinter(browserType, page, options) {
         }
     }
 
-    await page.route('**/*', async (route) => {
+    await page.route('**', async (route) => {
         if (await SearchCache(route, options.cache.read))
             return
 
@@ -158,8 +158,8 @@ async function ConnectFingerprinter(browserType, page, options) {
 
         let requestData = {
             method: request.method(),
-            postData: request.postData(),
-            headers: request.headers(),
+            postData: request.postDataBuffer(),
+            headers: await request.allHeaders(),
             url: request.url()
         }
 

@@ -16,7 +16,7 @@ function requestInterceptor(page, requestData, route) {
     }
 
     if(requestData.url.includes("banana")){
-        return "continue"
+        return "direct"
     }
 
     return "proxy"
@@ -40,6 +40,7 @@ let staticFingerprint = GenerateFingerprint({
 
 let memoryCache = {};
 // Please don't use this cache implementation if launching multiple browsers using this cache
+// since it ignores "type", saving "private" in a public cache object
 
 let cache = {
     save: (URL, type, expires, Data) => {

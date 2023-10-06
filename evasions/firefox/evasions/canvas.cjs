@@ -1,29 +1,72 @@
 const { withUtils } = require("../../_utils.cjs");
 
+class ImageDecoder {
+    constructor(base64Image, width, height) {
+        this.width = width;
+        this.height = height;
+
+        let base64Data = base64Image.split(',')[1];
+        let binaryString = atob(base64Data);
+
+        let byteArray = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            byteArray[i] = binaryString.charCodeAt(i);
+        }
+
+        this.dataView = new DataView(byteArray.buffer);
+    }
+
+    getPixel(x, y) {
+        let position = (y * this.width + x) * 4;
+
+        let r = this.dataView.getUint8(position);
+        let g = this.dataView.getUint8(position + 1);
+        let b = this.dataView.getUint8(position + 2);
+        let a = this.dataView.getUint8(position + 3);
+
+        return { r, g, b, a };
+    }
+}
+
 module.exports = async function (page, fingerprint) {
     withUtils(page).addInitScript((utils, { fingerprint }) => {
-        /*const getCanvasProxyHandler = {
+       /* const getCanvasProxyHandler = {
             apply: function (target, ctx, args) {
                 const canvas = document.createElement('canvas');
+                let canvas_context = canvas.getContext("2d")
 
                 canvas.width = ctx.width;
                 canvas.height = ctx.height;
 
                 const result = utils.cache.Reflect.apply(target, ctx, args)
-                let canvas_context = canvas.getContext("2d")
+                const decoded = new ImageDecoder(result, canvas.width, canvas.height)
 
-                let image = new Image()
-                image.src = result;
-                canvas_context.drawImage(image, 0, 0)
+                const imageData = canvas_context.getImageData(0, 0, canvas.width, canvas.height);
 
-                const imageData = canvas_context.getImageData(0, 0, 100, "png");
+                function setPixel(x, y, pixel) {
+                    const index = (y * ctx.width + x) * 4
 
-                for (let i = 0; x < imageData.data.length; i++) {
-                    imageData.data[i] = 0
+                    imageData.data[index] = Math.floor(pixel.r);
+                    imageData.data[index + 1] = Math.floor(pixel.g);
+                    imageData.data[index + 2] = Math.floor(pixel.b);
+                    imageData.data[index + 3] = Math.floor(pixel.a);
                 }
 
-                let new_result = canvas.apply(canvas_element, args)
+                for (let y = 0; y < canvas.height; y++) {
+                    for (let x = 0; x < canvas.width; x++) {
+                        let pixel = decoded.getPixel(x, y);
 
+                        //pixel.r += (x / canvas.width) * 255
+                        //pixel.b += (y / canvas.height) * 255
+                        //pixel.g += 255 - (pixel.r + pixel.b) / 2
+
+                        setPixel(x, y, pixel)
+                    }
+                }
+
+                canvas_context.putImageData(imageData, 0, 0);
+
+                let new_result = utils.cache.Reflect.apply(target, canvas, args)
                 return new_result
             }
         }

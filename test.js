@@ -2,13 +2,7 @@ import { firefox } from "playwright"
 import { GetCommonFingerprint, GenerateFingerprint/*, ConnectBrowserFingerprinter*/, ConnectFingerprinter } from "./index.js";
 
 function requestInterceptor(page, requestData, route) {
-    let request = route.request()
-
-    if(request.resourceType() == "image"){
-        return "continue"
-    }
-
-    return "proxy"
+    return "direct"
 };
 
 (async () => {
@@ -30,14 +24,26 @@ function requestInterceptor(page, requestData, route) {
 
     await ConnectFingerprinter("firefox", page, {
         fingerprint: {
-            ...GenerateFingerprint("firefox"),
+            ...GenerateFingerprint("firefox",{viewport: {width: 1400, height: 900}}),
             proxy: "direct"
         },
         requestInterceptor
     })
 
-    await page.goto("https://youtube.com")
-    //await page.goto("https://amiunique.org/fingerprint")
+    page.on("console", (message) => {
+        if(message.text().includes("Warning"))
+            return
+
+        console.log(`${message.type()}: ${message.text()}`)
+    })
+    
+    //await page.goto("https://jsfiddle.net/jdias/ztpBF/", {waitUntil: "networkidle"})
+
+    //await page.goto("https://fingerprint.com/products/bot-detection/")
+    //await page.goto("https://iphey.com/")
+
+    //await page.goto("https://youtube.com")
+    await page.goto("https://amiunique.org/fingerprint")
 
     //await page.goto('https://fingerprint.com/products/bot-detection/');
     //await page.goto("https://www.whatismybrowser.com/detect/what-is-my-user-agent/")
