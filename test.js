@@ -2,7 +2,7 @@ import { firefox } from "playwright"
 import { GetCommonFingerprint, GenerateFingerprint/*, ConnectBrowserFingerprinter*/, ConnectFingerprinter } from "./index.js";
 
 function requestInterceptor(page, requestData, route) {
-    return "direct"
+    return "proxy"
 };
 
 (async () => {

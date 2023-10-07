@@ -134,7 +134,7 @@ async function ConnectFingerprinter(browserType, page, options) {
             read: (URL) => {
                 return new Promise((resolve, reject) => {
                     let CachedResponse = memoryCache[URL]
-                    
+
                     if (!CachedResponse) {
                         return resolve(false)
                     }
@@ -173,7 +173,7 @@ async function ConnectFingerprinter(browserType, page, options) {
             try {
                 let mode = await options.requestInterceptor(page, requestData, route)
 
-                if (mode == "proxy" && !options.proxy)
+                if (mode == "proxy" && !fingerprint.proxy)
                     mode = "direct"
 
                 switch (mode) {
@@ -181,7 +181,7 @@ async function ConnectFingerprinter(browserType, page, options) {
                         route.continue(requestData)
                         break
                     case "proxy":
-                        useProxy(page.context(), route, { proxy: options.proxy, ...requestData })
+                        useProxy(page.context(), route, { proxy: fingerprint.proxy, ...requestData })
                         break
                     case "abort":
                         route.abort()
@@ -191,7 +191,7 @@ async function ConnectFingerprinter(browserType, page, options) {
                 console.error(err)
             }
         } else {
-            if (!options.proxy) {
+            if (!fingerprint.proxy) {
                 route.continue(requestData)
             } else {
                 useProxy(page.context(), route, { proxy, ...requestData })
