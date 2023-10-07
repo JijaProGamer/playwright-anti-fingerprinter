@@ -121,6 +121,8 @@ async function ConnectFingerprinter(browserType, page, options) {
     let fingerprint = options.fingerprint
     if (!fingerprint) fingerprint = GenerateFingerprint(browserType);
 
+    if(fingerprint.proxy == "direct" || fingerprint.proxy == "direct://") fingerprint.proxy = null
+
     if (!options.cache) {
         let memoryCache = {};
 
