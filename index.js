@@ -121,7 +121,7 @@ async function ConnectFingerprinter(browserType, page, options) {
     let fingerprint = options.fingerprint
     if (!fingerprint) fingerprint = GenerateFingerprint(browserType);
 
-    if(fingerprint.proxy == "direct" || fingerprint.proxy == "direct://") fingerprint.proxy = null
+    if (fingerprint.proxy == "direct" || fingerprint.proxy == "direct://") fingerprint.proxy = null
 
     if (!options.cache) {
         let memoryCache = {};
@@ -153,26 +153,26 @@ async function ConnectFingerprinter(browserType, page, options) {
     }
 
     await page.route('**', async (route) => {
-        if (await SearchCache(route, options.cache.read))
-            return
+        try {
+            if (await SearchCache(route, options.cache.read))
+                return
 
-        let request = route.request()
+            let request = route.request()
 
-        let requestData = {
-            method: request.method(),
-            postData: request.postDataBuffer(),
-            headers: await request.allHeaders(),
-            url: request.url()
-        }
-
-        for (let plugin in networkEvasionPlugins[browserType]) {
-            if (networkEvasionPlugins[browserType].hasOwnProperty(plugin)) {
-                requestData = await networkEvasionPlugins[browserType][plugin](route, requestData, fingerprint)
+            let requestData = {
+                method: request.method(),
+                postData: request.postDataBuffer(),
+                headers: await request.allHeaders(),
+                url: request.url()
             }
-        }
 
-        if (typeof options.requestInterceptor == "function") {
-            try {
+            for (let plugin in networkEvasionPlugins[browserType]) {
+                if (networkEvasionPlugins[browserType].hasOwnProperty(plugin)) {
+                    requestData = await networkEvasionPlugins[browserType][plugin](route, requestData, fingerprint)
+                }
+            }
+
+            if (typeof options.requestInterceptor == "function") {
                 let mode = await options.requestInterceptor(page, requestData, route)
 
                 if (mode == "proxy" && !fingerprint.proxy)
@@ -180,29 +180,34 @@ async function ConnectFingerprinter(browserType, page, options) {
 
                 switch (mode) {
                     case "direct":
-                        route.continue(requestData)
+                        await route.continue(requestData)
                         break
                     case "proxy":
-                        useProxy(page.context(), route, { proxy: fingerprint.proxy, ...requestData })
+                        await useProxy(page.context(), route, { proxy: fingerprint.proxy, ...requestData })
                         break
                     case "abort":
-                        route.abort()
+                        await route.abort()
                         break
                 }
-            } catch (err) {
-                console.error(err)
-            }
-        } else {
-            if (!fingerprint.proxy) {
-                route.continue(requestData)
+
             } else {
-                useProxy(page.context(), route, { proxy, ...requestData })
+                if (!fingerprint.proxy) {
+                    await route.continue(requestData)
+                } else {
+                    await useProxy(page.context(), route, { proxy, ...requestData })
+                }
             }
+        } catch (err) {
+            console.error(err)
         }
     })
 
-    page.on('response', (response) => {
-        CacheResponse(response, options.cache.save);
+    page.on('response', async (response) => {
+        try {
+            await CacheResponse(response, options.cache.save);
+        } catch (err){
+            console.error(err)
+        }
     });
 
     for (let plugin in evasionPlugins[browserType]) {
