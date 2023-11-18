@@ -1,40 +1,29 @@
 {
-    "webgl_vendor": "NVIDIA Corporation",
-    "webgl_renderer": "NVIDIA GeForce GTX 1650/PCIe/SSE2",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
-    "language": "en-US,en",
+    "webgl_vendor": "Google Inc. (Intel)",
+    "webgl_renderer": "ANGLE (Intel, Intel(R) HD Graphics Direct3D11 vs_5_0 ps_5_0)",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0",
+    "language": "en-US,en;q=0.5",
     "viewport": {
         "width": 1920,
-        "height": 1080
+        "height": 1080,
+        "colorDepth": 24,
+        "pixelDepth": 24
     },
-    "canvas": {
-        "shift": 1,
-        "chance": 50
-    },
-    "cpus": 6,
-    "memory": 8,
     "compatibleMediaMimes": {
         "audio": [
+            "mp3",
+            "aac",
+            "ogg",
             "flac",
-            "vorbis",
-            "opus",
-            "aac"
+            "wav",
+            "mpeg"
         ],
-        "video": {
-            "mp4": [
-                "avc1.42E01E",
-                "H264",
-                "flac"
-            ],
-            "mpeg": [],
-            "ogg": [
-                "opus",
-                "theora"
-            ],
-            "webm": [
-                "vp9",
-                "vp8"
-            ]
-        }
-    }
+        "video": [
+            "avc1",
+            "vp9",
+            "vp8"
+        ]
+    },
+    "cpus": 6,
+    "memory": 8
 }

@@ -21,7 +21,7 @@ let databaseTypes = [
     "compatibleMediaMimes",
     "languages",
     "userAgents",
-    "canvass",
+    //"canvass",
     "viewports"
 ]
 
@@ -36,7 +36,7 @@ for (let driver of supportedDrivers) {
     networkEvasionPlugins[driver] = {}
     databases[driver] = {
         cpus: [4, 8, 12, 16, 24, 32, 64, 96],
-        memorys: [0.25, 0.5, 1, 2, 4, 8],
+        memories: [0.25, 0.5, 1, 2, 4, 8],
         webgl_vendors: Object.keys(JSON.parse(readFileSync(path.join(__dirname, "databases", driver, `webgl_renderers.json`))))
     }
 
@@ -79,12 +79,12 @@ function GenerateFingerprint(browserType, generator_options = {}) {
     generator_options = {
         webgl_vendor: (e) => e.includes("Intel") || e.includes("AMD") || e.includes("NVIDIA"),
         webgl_renderer: (e) => true,
-        language: (e) => e.includes("en"),
+        language: (e) => e.includes("en") && e.length < 15,
         userAgent: (e) => e.includes("Windows"),
         viewport: (e) => e.width > 1000 && e.height > 800 && e.width < 2000 && e.height < 2000,
         cpu: (e) => e <= 24 && e >= 4,
         memory: (e) => true,
-        compatibleMediaMime: (e) => e.audio.includes("aac") && e.video["mp4"] && e.video.mp4.length > 0,
+        compatibleMediaMime: (e) => e.audio.includes("aac") && e.video.includes("avc1"),
         canvas: (e) => true,
         proxy: (e) => "direct://",
         ...generator_options,
@@ -92,24 +92,45 @@ function GenerateFingerprint(browserType, generator_options = {}) {
 
     let fingerprint = {}
 
-    for (let prop in generator_options) {
-        if (generator_options.hasOwnProperty(prop)) {
-            if (prop == "webgl_renderer") {
-                fingerprint["webgl_renderer"] =
-                    typeof (generator_options["webgl_renderer"]) == "function" ?
-                        shuffle(database["webgl_renderers"][fingerprint.webgl_vendor]).find(generator_options["webgl_renderer"]) :
-                        generator_options["webgl_renderer"]
+    fingerprint["webgl_vendor"] = typeof(generator_options["webgl_vendor"]) == "function" ? 
+                shuffle(database["webgl_vendors"]).find(generator_options["webgl_vendor"]) : 
+                typeof(generator_options["webgl_vendor"]) == "object" ? 
+                generator_options["webgl_vendor"][Math.floor(Math.random() * generator_options["webgl_vendor"].length)] : generator_options["webgl_vendor"]
 
-                continue;
-            }
+    fingerprint["webgl_renderer"] = typeof(generator_options["webgl_renderer"]) == "function" ? 
+                shuffle(database["webgl_renderers"][fingerprint["webgl_vendor"]]).find(generator_options["webgl_renderer"]) : 
+                typeof(generator_options["webgl_renderer"]) == "object" ? 
+                generator_options["webgl_renderer"][Math.floor(Math.random() * generator_options["webgl_renderer"].length)] : generator_options["webgl_renderer"]
 
-            let data = database[prop + "s"]
+    fingerprint["userAgent"] = typeof(generator_options["userAgent"]) == "function" ? 
+                shuffle(database["userAgents"]).find(generator_options["userAgent"]) : 
+                typeof(generator_options["userAgent"]) == "object" ? 
+                generator_options["userAgent"][Math.floor(Math.random() * generator_options["userAgent"].length)] : generator_options["userAgent"]
 
-            fingerprint[prop] = typeof (generator_options[prop]) == "function" ? (
-                data ? shuffle(data).find(generator_options[prop]) : generator_options[prop]()
-            ) : generator_options[prop]
-        }
-    }
+    fingerprint["viewport"] = typeof(generator_options["viewport"]) == "function" ? 
+                shuffle(database["viewports"]).find(generator_options["viewport"]) : 
+                typeof(generator_options["viewport"]) == "object" ? 
+                generator_options["viewport"][Math.floor(Math.random() * generator_options["viewport"].length)] : generator_options["viewport"]
+
+    fingerprint["cpu"] = typeof(generator_options["cpu"]) == "function" ? 
+                shuffle(database["cpus"]).find(generator_options["cpu"]) : 
+                typeof(generator_options["cpu"]) == "object" ? 
+                generator_options["cpu"][Math.floor(Math.random() * generator_options["cpu"].length)] : generator_options["cpu"]
+
+    fingerprint["memory"] = typeof(generator_options["memory"]) == "function" ? 
+                shuffle(database["memories"]).find(generator_options["memory"]) : 
+                typeof(generator_options["memory"]) == "object" ? 
+                generator_options["memory"][Math.floor(Math.random() * generator_options["memory"].length)] : generator_options["memory"]
+
+    fingerprint["compatibleMediaMime"] = typeof(generator_options["compatibleMediaMime"]) == "function" ? 
+                shuffle(database["compatibleMediaMimes"]).find(generator_options["compatibleMediaMime"]) : 
+                typeof(generator_options["compatibleMediaMime"]) == "object" ? 
+                generator_options["compatibleMediaMime"][Math.floor(Math.random() * generator_options["compatibleMediaMime"].length)] : generator_options["compatibleMediaMime"]
+
+    fingerprint["proxy"] = typeof(generator_options["proxy"]) == "function" ? 
+                generator_options["proxy"]() : 
+                typeof(generator_options["proxy"]) == "object" ? 
+                generator_options["proxy"][Math.floor(Math.random() * generator_options["proxy"].length)] : generator_options["proxy"]
 
     return fingerprint
 }

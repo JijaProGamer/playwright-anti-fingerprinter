@@ -2,85 +2,34 @@
     "Google Inc. (Intel)": [
         "ANGLE (Intel, Intel(R) HD Graphics Direct3D11 vs_5_0 ps_5_0)",
         "ANGLE (Intel, Intel(R) HD Graphics 400 Direct3D11 vs_5_0 ps_5_0)",
-    
-        "ANGLE (Intel(R) HD Graphics 520 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (Intel(R) HD Graphics 530 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (Intel(R) HD Graphics 510 Direct3D11 vs_5_0 ps_5_0)",
-
-        "ANGLE (Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (Intel(R) UHD Graphics 640 Direct3D11 vs_5_0 ps_5_0)",
-
-        "ANGLE (Intel(R) UHD Graphics 740 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (Intel(R) UHD Graphics 750 Direct3D11 vs_5_0 ps_5_0)"
-    ],
-    "Google Inc. (AMD)": [
-        "ANGLE (AMD, Radeon RX 570 Series Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (AMD, AMD Radeon RX 6700 Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (AMD, AMD Radeon(TM) Graphics Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (AMD, AMD Radeon(TM) Vega 9 Graphics Direct3D11 vs_5_0 ps_5_0, D3D11-26.20.12067.1000)"
-    ],
-    "Intel Inc.": [
-        "Intel Iris OpenGL Engine"
-    ],
-    "Google Inc.": [
-        "Intel(R) HD Graphics",
-        "ANGLE (AMD Radeon R7 430 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA GeForce GTX 1050 Direct3D11 vs_5_0 ps_5_0)"
-    ],
-    "Google Inc. (Apple)": [
-        "ANGLE (Apple, Apple M1 Pro, OpenGL 4.1)",
-        "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
-        "ANGLE (Apple, Apple M1, OpenGL 4.1)"
-    ],
-    "Google Inc. (ARM)": [
-        "ANGLE (ARM, Mali-G57 MC2, OpenGL ES 3.2)",
-        "ANGLE (ARM, Mali-G610 MC6, OpenGL ES 3.2)"
-    ],
-    "Google Inc. (Qualcomm)": [
-        "ANGLE (Qualcomm, Adreno (TM) 619, OpenGL ES 3.2)",
-        "ANGLE (Qualcomm, Adreno (TM) 660, OpenGL ES 3.2)",
-        "ANGLE (Qualcomm, Adreno (TM) 650, OpenGL ES 3.2)",
-        "ANGLE (Qualcomm, Adreno (TM) 642L, OpenGL ES 3.2)"
+        "ANGLE (Intel, Intel(R) HD Graphics Direct3D11 vs_4_0 ps_4_0)",
+        "ANGLE (Intel, Intel(R) HD Graphics Direct3D11 vs_4_1 ps_4_1)"
     ],
     "Google Inc. (NVIDIA)": [
-        "ANGLE (NVIDIA, NVIDIA GeForce RTX 3080 Ti Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce RTX 2060 Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce RTX 2070 SUPER Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce RTX 2070 Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 960 Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1050 Ti Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 3GB Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Laptop GPU Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 SUPER Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 Ti Direct3D11 vs_5_0 ps_5_0, D3D11)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1070 Ti Direct3D11 vs_5_0 ps_5_0, D3D11)",
-
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1050 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1070 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 1080 Direct3D11 vs_5_0 ps_5_0)",
-
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 950 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 960 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 970 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 980 Direct3D11 vs_5_0 ps_5_0)",
-
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 750 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 760 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 770 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 780 Direct3D11 vs_5_0 ps_5_0)",
-
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 650 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 660 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 670 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 680 Direct3D11 vs_5_0 ps_5_0)",
-
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 550 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 560 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 570 Direct3D11 vs_5_0 ps_5_0)",
-        "ANGLE (NVIDIA, NVIDIA GeForce GTX 580 Direct3D11 vs_5_0 ps_5_0)"
+        "ANGLE (NVIDIA, NVIDIA GeForce GTX 980 Direct3D11 vs_5_0 ps_5_0)"
+    ],
+    "Qualcomm": [
+        "Adreno (TM) 650"
+    ],
+    "Google Inc. (AMD)": [
+        "ANGLE (AMD, Radeon R9 200 Series Direct3D11 vs_5_0 ps_5_0)",
+        "ANGLE (AMD, Radeon HD 3200 Graphics Direct3D11 vs_5_0 ps_5_0)"
+    ],
+    "Apple": [
+        "Apple M1"
+    ],
+    "Mesa/X.org": [
+        "llvmpipe"
+    ],
+    "Intel": [
+        "Intel(R) HD Graphics",
+        "Intel(R) HD Graphics 400"
+    ],
+    "Mesa": [
+        "llvmpipe"
+    ],
+    "Intel Inc.": [
+        "Intel 945GM",
+        "Intel(R) HD Graphics 400"
     ]
 }

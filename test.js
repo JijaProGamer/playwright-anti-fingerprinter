@@ -5,6 +5,8 @@ function requestInterceptor(page, requestData, route) {
     return "proxy"
 };
 
+let proxy = "direct://";
+
 (async () => {
     const browser = await firefox.launch({
         headless: false,
@@ -15,7 +17,7 @@ function requestInterceptor(page, requestData, route) {
         serviceWorkers: "block"
     });
 
-    await context.setDefaultNavigationTimeout(0)
+    context.setDefaultNavigationTimeout(0)
 
     //await ConnectBrowserFingerprinter(browser.browserType(), context)
 
@@ -24,8 +26,8 @@ function requestInterceptor(page, requestData, route) {
 
     await ConnectFingerprinter("firefox", page, {
         fingerprint: {
-            ...GenerateFingerprint("firefox",{viewport: {width: 1400, height: 900}}),
-            proxy: "direct"
+            ...GenerateFingerprint("firefox"),
+            proxy
         },
         requestInterceptor
     })
@@ -36,15 +38,19 @@ function requestInterceptor(page, requestData, route) {
 
         console.log(`${message.type()}: ${message.text()}`)
     })
+
+    //await page.goto("https://www.bloxxy.net")
+
+    //await page.goto("https://www.youtube.com/watch?v=0o2aA4fHhoo")
+
+    //await page.goto("https://whoer.net")
     
     //await page.goto("https://jsfiddle.net/jdias/ztpBF/", {waitUntil: "networkidle"})
 
-    //await page.goto("https://fingerprint.com/products/bot-detection/")
-    //await page.goto("https://iphey.com/")
+    await page.goto("https://iphey.com/")
 
     //await page.goto("https://youtube.com")
-    await page.goto("https://amiunique.org/fingerprint")
+    //await page.goto("https://amiunique.org/fingerprint")
 
     //await page.goto('https://fingerprint.com/products/bot-detection/');
-    //await page.goto("https://www.whatismybrowser.com/detect/what-is-my-user-agent/")
 })();

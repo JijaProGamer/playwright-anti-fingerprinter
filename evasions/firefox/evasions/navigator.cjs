@@ -4,7 +4,11 @@ const UAParser = require("ua-parser-js")
 module.exports = async function (page, fingerprint) {
     let UA = new UAParser(fingerprint.userAgent);
 
-    await withUtils(page).addInitScript((utils, { fingerprint, UA }) => {
+    let OS = UA.getOS().name == "Windows"
+        ? "Win32"
+        : "Linux x86_64"
+
+    await withUtils(page).addInitScript((utils, { fingerprint, OS }) => {
         /*
 
         utils.replaceGetterWithProxy(
@@ -14,11 +18,7 @@ module.exports = async function (page, fingerprint) {
         )
         
         */
-
-        let OS = UA.getOS().name == "Windows"
-            ? "Win32"
-            : "Linux x86_64"
-
+       
         /*Object.defineProperty(navigator, "productSub", {
             value: UA.getEngine().version,
             configurable: false,
@@ -51,5 +51,5 @@ module.exports = async function (page, fingerprint) {
             'userAgent',
             utils.makeHandler().getterValue(fingerprint.userAgent)
         )
-    }, { UA, fingerprint });
+    }, { fingerprint, OS });
 }
