@@ -1,18 +1,30 @@
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import got from "got";
 
-import { dirname } from 'path'
+import { dirname } from 'path';
 import { createRequire } from 'module';
-import { fileURLToPath } from 'url'
+import { fileURLToPath } from 'url';
+import { tmpdir } from "os"
+import { randomUUID } from 'node:crypto';
 
 import useProxy from './proxy/proxy.js';
 import { CacheResponse, SearchCache } from 'playwright-cache';
+import { firefox } from 'playwright';
+
+import { SocksProxyAgent } from "socks-proxy-agent";
+import { HttpProxyAgent } from "http-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import countryLocaleMap from 'country-locale-map';
+
+import { loadFirefoxAddon } from './firefox_ext_installer.js';
 
 let require = createRequire(fileURLToPath(import.meta.url));
 let __dirname = dirname(fileURLToPath(import.meta.url))
 
 let commonFingerprints = {}
 let evasionPlugins = {}
+let evasionExtensions = {}
 let networkEvasionPlugins = {}
 let databases = {}
 
@@ -27,12 +39,13 @@ let databaseTypes = [
 
 let supportedDrivers = [
     "firefox",
-    "chromium"
+    //"chromium"
 ]
 
 for (let driver of supportedDrivers) {
     let evasionsPosible = JSON.parse(readFileSync(path.join(__dirname, "evasions", driver, "evasions.json")))
     evasionPlugins[driver] = {}
+    evasionExtensions[driver] = {}
     networkEvasionPlugins[driver] = {}
     databases[driver] = {
         cpus: [4, 8, 12, 16, 24, 32, 64, 96],
@@ -40,12 +53,16 @@ for (let driver of supportedDrivers) {
         webgl_vendors: Object.keys(JSON.parse(readFileSync(path.join(__dirname, "databases", driver, `webgl_renderers.json`))))
     }
 
-    for (let evasion of evasionsPosible) {
+    for (let evasion of evasionsPosible.evasions) {
         if (evasion.startsWith("network-")) {
             networkEvasionPlugins[driver][evasion] = require(path.join(__dirname, "evasions", driver, "evasions", `${evasion}.cjs`))
         } else {
             evasionPlugins[driver][evasion] = require(path.join(__dirname, "evasions", driver, "evasions", `${evasion}.cjs`))
         }
+    }
+
+    for (let evasion of evasionsPosible.plugins) {
+        evasionExtensions[driver][evasion] = path.join(__dirname, "evasions", driver, "plugins", evasion)
     }
 
     for (let databaseType of databaseTypes) {
@@ -60,6 +77,24 @@ function shuffle(arr) {
         .map(value => ({ value, sort: Math.random() }))
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value)
+}
+
+const setAgent = (proxy) => {
+    if (proxy.startsWith("socks")) {
+        return {
+            http: new SocksProxyAgent(proxy),
+            https: new SocksProxyAgent(proxy)
+        };
+    }
+    return {
+        http: new HttpProxyAgent(proxy),
+        https: new HttpsProxyAgent(proxy)
+    };
+};
+
+function smootherstep(edge0, edge1, x) {
+    x = Math.sqrt(x);  
+    return edge0 + (edge1 - edge0) * x;
 }
 
 function GetCommonFingerprint(browserType) {
@@ -135,9 +170,6 @@ function GenerateFingerprint(browserType, generator_options = {}) {
     return fingerprint
 }
 
-/*async function ConnectBrowserFingerprinter(browserType, context, options) {
-
-}*/
 async function ConnectFingerprinter(browserType, page, options) {
     let fingerprint = options.fingerprint
     if (!fingerprint) fingerprint = GenerateFingerprint(browserType);
@@ -238,5 +270,54 @@ async function ConnectFingerprinter(browserType, page, options) {
     }
 }
 
-export { ConnectFingerprinter/*, ConnectBrowserFingerprinter*/, GetCommonFingerprint, GenerateFingerprint }
+async function LaunchBrowser(browserType, opts, fingerprint={}, rdp_port=0){
+    if(!rdp_port) rdp_port = 10000 + Math.floor(Math.random() * 55565)
+    let browser
+
+    if(fingerprint.proxy == "direct://" || fingerprint.proxy == "direct") fingerprint.proxy = undefined
+
+    let ipInfo = JSON.parse((await got({
+        url: "https://lumtest.com/myip.json",
+        agent: fingerprint.proxy ? setAgent(fingerprint.proxy) : undefined
+    })).body)
+
+    /*let userDataDir = opts.userDataDir;
+    if(!userDataDir){
+        userDataDir = path.join(tmpdir(), randomUUID());
+        mkdirSync(userDataDir)
+    }*/
+
+    switch(browserType){
+        case "firefox":
+            browser = await firefox.launch({
+            //browser = await firefox.launchPersistentContext(userDataDir, {
+                ...opts,
+                args: [...(opts.args || []), '-start-debugger-server', String(rdp_port) ],
+                firefoxUserPrefs: {
+                    ...(opts.firefoxUserPrefs || {}),
+                    'devtools.debugger.remote-enabled': true,
+                    'devtools.debugger.prompt-connection': false,
+                },
+                geolocation: {
+                    latitude: ipInfo.geo.latitude,
+                    longitude: ipInfo.geo.longitude,
+                    accuracy: smootherstep(0.1, 300, Math.random())
+                },
+                locale: countryLocaleMap.getLocaleByAlpha2(ipInfo.geo.country),
+                timezoneId: ipInfo.geo.tz
+            });
+
+            for (let extension in evasionExtensions[browserType]) {
+                if (evasionExtensions[browserType].hasOwnProperty(extension)) {
+                    await loadFirefoxAddon(rdp_port, "127.0.0.1", evasionExtensions[browserType][extension])
+                }
+            }
+
+            break;
+    }
+
+    return {browser, ipInfo};
+}
+
+export { ConnectFingerprinter, LaunchBrowser, GetCommonFingerprint, GenerateFingerprint }
 export default ConnectFingerprinter

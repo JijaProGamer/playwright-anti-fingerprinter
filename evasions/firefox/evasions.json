@@ -1,4 +1,4 @@
-[
+{"evasions": [
     "navigator",
     "network-navigator",
 
@@ -7,4 +7,6 @@
     "media",
     "canvas",
     "focus"
-]
+], "plugins": [
+    "disable_webrtc"
+]}

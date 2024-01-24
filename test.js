@@ -1,5 +1,4 @@
-import { firefox } from "playwright"
-import { GetCommonFingerprint, GenerateFingerprint/*, ConnectBrowserFingerprinter*/, ConnectFingerprinter } from "./index.js";
+import { GetCommonFingerprint, GenerateFingerprint, LaunchBrowser, ConnectFingerprinter } from "./index.js";
 
 function requestInterceptor(page, requestData, route) {
     return "proxy"
@@ -8,9 +7,15 @@ function requestInterceptor(page, requestData, route) {
 let proxy = "direct://";
 
 (async () => {
-    const browser = await firefox.launch({
+    let fingerprint = {
+        ...GenerateFingerprint("firefox"),
+        proxy
+    }
+
+    const browser = (await LaunchBrowser("firefox", {
         headless: false,
-    });
+        serviceWorkers: "block"
+    }, fingerprint)).browser
 
     const context = await browser.newContext({
         resources: 'low',
@@ -24,11 +29,10 @@ let proxy = "direct://";
     const page = await context.newPage();
     await page.bringToFront();
 
+    console.log(fingerprint)
+
     await ConnectFingerprinter("firefox", page, {
-        fingerprint: {
-            ...GenerateFingerprint("firefox"),
-            proxy
-        },
+        fingerprint,
         requestInterceptor
     })
 
@@ -39,18 +43,6 @@ let proxy = "direct://";
         console.log(`${message.type()}: ${message.text()}`)
     })
 
-    //await page.goto("https://www.bloxxy.net")
-
-    //await page.goto("https://www.youtube.com/watch?v=0o2aA4fHhoo")
-
-    //await page.goto("https://whoer.net")
-    
-    //await page.goto("https://jsfiddle.net/jdias/ztpBF/", {waitUntil: "networkidle"})
-
-    await page.goto("https://iphey.com/")
-
-    //await page.goto("https://youtube.com")
-    //await page.goto("https://amiunique.org/fingerprint")
-
-    //await page.goto('https://fingerprint.com/products/bot-detection/');
+    await page.goto('https://browserleaks.com/ip');
+    //await page.goto('https://www.youtube.com/watch?v=R83W2XR3IC8')
 })();

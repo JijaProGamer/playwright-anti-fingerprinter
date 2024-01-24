@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "agent-base": "^7.1.0",
+    "country-locale-map": "^1.9.0",
     "got": "^13.0.0",
     "http-proxy-agent": "^7.0.0",
     "https-proxy-agent": "^7.0.2",
