@@ -170,7 +170,7 @@ function GenerateFingerprint(browserType, generator_options = {}) {
     return fingerprint
 }
 
-async function ConnectFingerprinter(browserType, page, options) {
+async function ConnectFingerprinter(browserType, page, options, blacklistedEvasions=[]) {
     let fingerprint = options.fingerprint
     if (!fingerprint) fingerprint = GenerateFingerprint(browserType);
 
@@ -221,6 +221,8 @@ async function ConnectFingerprinter(browserType, page, options) {
 
             for (let plugin in networkEvasionPlugins[browserType]) {
                 if (networkEvasionPlugins[browserType].hasOwnProperty(plugin)) {
+                    if(blacklistedEvasions.includes(plugin)) continue;
+
                     requestData = await networkEvasionPlugins[browserType][plugin](route, requestData, fingerprint)
                 }
             }
@@ -265,6 +267,8 @@ async function ConnectFingerprinter(browserType, page, options) {
 
     for (let plugin in evasionPlugins[browserType]) {
         if (evasionPlugins[browserType].hasOwnProperty(plugin)) {
+            if(blacklistedEvasions.includes(plugin)) continue;
+
             await evasionPlugins[browserType][plugin](page, fingerprint)
         }
     }
@@ -281,16 +285,16 @@ async function LaunchBrowser(browserType, opts, fingerprint={}, rdp_port=0){
         agent: fingerprint.proxy ? setAgent(fingerprint.proxy) : undefined
     })).body)
 
-    /*let userDataDir = opts.userDataDir;
+    let userDataDir = opts.userDataDir;
     if(!userDataDir){
         userDataDir = path.join(tmpdir(), randomUUID());
         mkdirSync(userDataDir)
-    }*/
+    }
 
     switch(browserType){
         case "firefox":
-            browser = await firefox.launch({
-            //browser = await firefox.launchPersistentContext(userDataDir, {
+            //browser = await firefox.launch({
+            browser = await firefox.launchPersistentContext(userDataDir, {
                 ...opts,
                 args: [...(opts.args || []), '-start-debugger-server', String(rdp_port) ],
                 firefoxUserPrefs: {

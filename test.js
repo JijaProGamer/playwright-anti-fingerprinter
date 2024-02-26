@@ -12,21 +12,21 @@ let proxy = "direct://";
         proxy
     }
 
-    const browser = (await LaunchBrowser("firefox", {
+    const context = (await LaunchBrowser("firefox", {
         headless: false,
         serviceWorkers: "block"
     }, fingerprint)).browser
 
-    const context = await browser.newContext({
+    /*const context = await browser.newContext({
         resources: 'low',
         serviceWorkers: "block"
-    });
+    });*/
 
     context.setDefaultNavigationTimeout(0)
 
     //await ConnectBrowserFingerprinter(browser.browserType(), context)
 
-    const page = await context.newPage();
+    const page = (await context.pages())[0];
     await page.bringToFront();
 
     console.log(fingerprint)
@@ -34,7 +34,7 @@ let proxy = "direct://";
     await ConnectFingerprinter("firefox", page, {
         fingerprint,
         requestInterceptor
-    })
+    }, [])
 
     page.on("console", (message) => {
         if(message.text().includes("Warning"))
