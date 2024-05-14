@@ -295,7 +295,8 @@ async function LaunchBrowser(browserType, opts, fingerprint={}, rdp_port=0){
         case "firefox":
             //browser = await firefox.launch({
             browser = await firefox.launchPersistentContext(userDataDir, {
-                ...opts,
+                ...opts, 
+                proxy: undefined,
                 args: [...(opts.args || []), '-start-debugger-server', String(rdp_port) ],
                 firefoxUserPrefs: {
                     ...(opts.firefoxUserPrefs || {}),

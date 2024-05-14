@@ -1,4 +1,4 @@
-import { GetCommonFingerprint, GenerateFingerprint, LaunchBrowser, ConnectFingerprinter } from "./index.js";
+import { GetCommonFingerprint, GenerateFingerprint, LaunchBrowser, ConnectFingerprinter } from "../../index.js";
 
 function requestInterceptor(page, requestData, route) {
     return "proxy"
@@ -43,6 +43,5 @@ let proxy = "direct://";
         console.log(`${message.type()}: ${message.text()}`)
     })
 
-    await page.goto('https://browserleaks.com/ip');
-    //await page.goto('https://www.youtube.com/watch?v=R83W2XR3IC8')
+    await page.goto('https://browserleaks.com/webgl');
 })();
