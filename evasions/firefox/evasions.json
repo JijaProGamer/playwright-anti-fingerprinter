@@ -6,7 +6,8 @@
     "webgl",
     "media",
     "canvas",
-    "focus"
+    "focus",
+    "plugins"
 ], "plugins": [
     "disable_webrtc"
 ]}

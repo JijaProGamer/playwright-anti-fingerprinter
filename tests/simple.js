@@ -1,10 +1,10 @@
-import { GetCommonFingerprint, GenerateFingerprint, LaunchBrowser, ConnectFingerprinter } from "../../index.js";
+import { GetCommonFingerprint, GenerateFingerprint, LaunchBrowser, ConnectFingerprinter } from "../index.js";
 
 function requestInterceptor(page, requestData, route) {
     return "proxy"
 };
 
-let proxy = "direct://";
+let proxy = "socks5://Bloxxy213:BloxMakesDaMoney_session-jNtyMXuK_lifetime-30m_streaming-1@geo.iproyal.com:32325";
 
 (async () => {
     let fingerprint = {
@@ -43,5 +43,5 @@ let proxy = "direct://";
         console.log(`${message.type()}: ${message.text()}`)
     })
 
-    await page.goto('https://browserleaks.com/webgl');
+    await page.goto('https://fingerprint.com/products/bot-detection/');
 })();
