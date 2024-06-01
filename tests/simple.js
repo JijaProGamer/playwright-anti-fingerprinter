@@ -4,7 +4,7 @@ function requestInterceptor(page, requestData, route) {
     return "proxy"
 };
 
-let proxy = "socks5://Bloxxy213:BloxMakesDaMoney_session-jNtyMXuK_lifetime-30m_streaming-1@geo.iproyal.com:32325";
+let proxy = "direct://";
 
 (async () => {
     let fingerprint = {
