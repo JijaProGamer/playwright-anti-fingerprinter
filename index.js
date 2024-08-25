@@ -288,8 +288,9 @@ async function LaunchBrowser(browserType, opts, fingerprint={}, rdp_port=0){
     let userDataDir = opts.userDataDir;
     if(!userDataDir){
         userDataDir = path.join(tmpdir(), randomUUID());
-        mkdirSync(userDataDir)
     }
+
+    mkdirSync(userDataDir, { recursive: true })
 
     switch(browserType){
         case "firefox":
@@ -308,7 +309,7 @@ async function LaunchBrowser(browserType, opts, fingerprint={}, rdp_port=0){
                     longitude: ipInfo.geo.longitude,
                     accuracy: smootherstep(0.1, 300, Math.random())
                 },
-                locale: countryLocaleMap.getLocaleByAlpha2(ipInfo.geo.country),
+                locale: countryLocaleMap.getLocaleByAlpha2(undefined),//ipInfo.country),
                 timezoneId: ipInfo.geo.tz
             });
 
