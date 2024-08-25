@@ -309,7 +309,7 @@ async function LaunchBrowser(browserType, opts, fingerprint={}, rdp_port=0){
                     longitude: ipInfo.geo.longitude,
                     accuracy: smootherstep(0.1, 300, Math.random())
                 },
-                locale: countryLocaleMap.getLocaleByAlpha2(undefined),//ipInfo.country),
+                locale: countryLocaleMap.getLocaleByAlpha2(ipInfo.country),
                 timezoneId: ipInfo.geo.tz
             });
 
