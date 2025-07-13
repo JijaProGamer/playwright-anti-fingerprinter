@@ -249,7 +249,7 @@ async function ConnectFingerprinter(browserType, page, options, blacklistedEvasi
                 if (!fingerprint.proxy) {
                     await route.continue(requestData)
                 } else {
-                    await useProxy(page.context(), route, { proxy, ...requestData })
+                    await useProxy(page.context(), route, { proxy: fingerprint.proxy, ...requestData })
                 }
             }
         } catch (err) {
